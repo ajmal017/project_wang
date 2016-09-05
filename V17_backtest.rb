@@ -44,6 +44,7 @@ require require_loc + "/machine_learn/nbayes_V16.rb"
 require require_loc + "/deep_dup.rb"
 require require_loc + "/arraymath.rb"
 require require_loc + "/machine_learn/peak_find_v17_2.rb"
+require require_loc + "/test/moving_avg_2.rb"
 ## require peaks
 
 #if array in string form ->  array2 = array.gsub(/[\[\]]/,"").split(/,/).map(&:to_i)
@@ -79,6 +80,11 @@ class Backtest_Run_V_17
 	@m_diff_more_stddev_two_times, @m_diff_more_stddev_one_times, @m_diff_more_stddev_half_times, @m_diff_less_stddev_tenth =7,8,9,10
 	@m_current_pos, @m_current_neg = 11,12
 	@m_recent_24_hours_pos_neg, @m_recent_12_hours_pos_neg, @m_curr_less_avg = 13, 14, 15
+
+#		@m_timestamp, @m_expected_v,@m_ob_ex_diff, @m_ob_ex_avg, @m_ob_ex_max, @m_sum_pos, @m_sum_neg, @m_std_dev = 0,1,2,3,4,5,6,7
+#	@m_diff_more_stddev_two_times, @m_diff_more_stddev_one_times, @m_diff_more_stddev_half_times, @m_diff_less_stddev_tenth =8,9,10,11
+#	@m_current_pos, @m_current_neg = 12,13
+#	@m_recent_24_hours_pos_neg, @m_recent_12_hours_pos_neg, @m_curr_less_avg = 14, 15,16
 
 		@ruby_file = ruby_file#"C:/Users/J Wong/Documents/ruby"
 		@compile_folder_all = "#{@ruby_file}/marketdata/"#"/home/ruby/Result_data"
@@ -144,7 +150,7 @@ class Backtest_Run_V_17
 		#data_3_ori = data_3.deep_dup
 		#data_6_ori = data_6.deep_dup
 ##########		# Search begin date in ii
-		begin_year, begin_month, begin_day, ii = 2015, 1, 22, 0 #2015, 7, 13, 0 # 2015, 6, 12, 2900 # 
+		begin_year, begin_month, begin_day, ii = 2015, 2, 28, 0 #2015, 1, 22, 0 #2015, 7, 13, 0 # 2015, 6, 12, 2900 # 
 		begin_date = Time.new(begin_year, begin_month, begin_day).to_i*1000
 		ii+=1 until hour_1[ii][@timestamp_t]>= begin_date 
 		current_interval_1h = hour_1[ii][@timestamp_t]
@@ -183,7 +189,11 @@ class Backtest_Run_V_17
 
 		moving_avg_days = [1,2,5,10] #try to arrange this from small to large
 		total_ma = {}
-					
+		move1 = Move_average.new(24)
+		move2 = Move_average.new(48)
+		move3 = Move_average.new(120)
+		move4 = Move_average.new(240)
+
 		interval = 5
 		s_interval= 2
 		interval_1 = 12
@@ -191,7 +201,7 @@ class Backtest_Run_V_17
 
 		peak_1 = Peak_evaluate.new(interval, s_interval, 4)     #initialize peak evaluation  initialize(width, minor_width, second_dir =4), peak_find_slope(dataset)
 		peak_2 = Peak_evaluate.new(interval_1, s_interval_1, 4) 
- 
+
 		p minute_5.count
 
 		current_ii = ii
@@ -206,9 +216,11 @@ class Backtest_Run_V_17
 		all_time = []
 		while current_ii<last_val  # ii30<minute_30.count && 	#here's where the action starts
 
-			if (week_check(current_interval_1h) && all_values.count>=700)#@average_analytics_count) #|| half_week_check(current_interval_1h))
+
+			p current_ii
+			if (week_check(current_interval_1h) && all_values.count>=10000)#@average_analytics_count) #|| half_week_check(current_interval_1h))
 			#count_compiled = all_values.any? ? all_values.count : 0
-				unless false #count_compiled>=@average_analytics_count
+				if true #count_compiled>=@average_analytics_count
 #					write_analytics_live(currency, prev_analytics.dup)
 #					prev_analytics.clear
 
@@ -274,9 +286,6 @@ class Backtest_Run_V_17
 					exit()
 				else
 					 
-					all_values.each do |x|
-						x.insert(0,0)
-					end
 					all_values.insert(0,["Yes/No", "Profit_Buy","Profit_24_Buy","Profit_48_Buy","Profit_72_Buy",
 					"Candle_loc","Close Bid","Close Ask","Slope","Slope2","Error_slope","Intercept_slope","Estimated_difference_bid","Estimated_difference_ask",
 					"Buy_gain_1h_ago", "Buy_gain_3h_ago", "Buy_gain_6h_ago", "Buy_gain_12h_ago", "Buy_gain_24h_ago", 
@@ -405,16 +414,6 @@ class Backtest_Run_V_17
 				#############################______END TRIM AND UPDATE VALUES AND INTERVALS END_____#############################		
 				
 
-			
-
-			#all_time.push([hour_1h_n[-1][@timestamp_t], hour_1h_n[-1][@close_b], hour_1h_n[-1][@close_ask], Time.at(timehere).day, Time.at(timehere).hour, Time.at(timehere).min])
-			#p Time.at(timehere).year, Time.at(timehere).month, Time.at(timehere/1000).day, Time.at(timehere/1000).min, Time.at(timehere/1000).sec
-
-
-
-
-
-
 				predicted_1_h,predicted_2_h,predicted_1_h2,predicted_2_h2 =0.0,0.0,0.0,0.0
 				yule_hour_1.each_index { |x| predicted_1_h += yule_hour_1[x]*data_3_n[ii3h-x] }
 				yule_hour_2.each_index { |x| predicted_2_h += yule_hour_2[x]*data_3_n[ii3h-x] }
@@ -434,7 +433,7 @@ class Backtest_Run_V_17
 				returned_values = [] 
 				
 				profit_buy,profit_24_buy, profit_48_buy, profit_72_buy=0,0,hour_1h_n[-1][@close_ask].deep_dup,hour_1h_n[-1][@timestamp_t].deep_dup  #let profit_48_buy to be closing ask and profit_72_buy be the timestamp
-				buy_1h, buy_3h, buy_6h, buy_12h, buy_24h = minute_5[-13][@close_ask],minute_5[-37][@close_ask],minute_5[-73][@close_ask],minute_5[-145][@close_ask],minute_5[-289][@close_ask]
+				buy_1h, buy_3h, buy_6h, buy_12h, buy_24h = minute_5[ii01-13][@close_ask],minute_5[ii01-37][@close_ask],minute_5[ii01-73][@close_ask],minute_5[ii01-145][@close_ask],minute_5[ii01-289][@close_ask]
 				##get values 3 hours, 12 hours, 24 hours, 48 hours, 72 hours ago
 				current_val = hour_1h_n[-1][@close_b]				
 				(buy_1h, buy_3h, buy_6h, buy_12h, buy_24h)=[buy_1h, buy_3h, buy_6h, buy_12h, buy_24h].map do |x|  
@@ -462,12 +461,27 @@ class Backtest_Run_V_17
 				returned_values.push(*(regression_values.deep_dup))
 				returned_values.push(*(peak_slope_return.deep_dup))
 				returned_values.push(*(peak_slope_return_2.deep_dup))
-				moving_avg_days.each do |x|
-					total_hours_ma = x*24
-					total_ma["ma_days_#{x}"] = moving_averages(data_1h_n.deep_dup,total_hours_ma)
-					returned_values.push(*(total_ma["ma_days_#{x}"]).deep_dup)
-				end
-				#total_ma.each {| key, value | returned_values.push(*(value.deep_dup))} same as above
+				#moving_avg_days.each do |x|
+				#	total_hours_ma = x*24
+				#	total_ma["ma_days_#{x}"] = moving_average(data_1h_n.deep_dup,total_hours_ma)  #moving_averages_2(hour_time.dup,hour_val.dup, total_hours_ma)#
+				#	returned_values.push(*(total_ma["ma_days_#{x}"]).deep_dup)
+				#end
+				## not needed #total_ma.each {| key, value | returned_values.push(*(value.deep_dup))} same as above
+
+
+	 			return_move1 = move1.moving_averages(hour_time, hour_val)
+	 			return_move2 = move2.moving_averages(hour_time, hour_val)
+	 			return_move3 = move3.moving_averages(hour_time, hour_val)
+	 			return_move4 = move4.moving_averages(hour_time, hour_val)
+	 			returned_values.push(*(return_move1.deep_dup))
+	 			return_move1=nil
+	 			returned_values.push(*(return_move2.deep_dup))
+	 			return_move2=nil
+	 			returned_values.push(*(return_move3.deep_dup))
+	 			return_move3=nil
+	 			returned_values.push(*(return_move4.deep_dup))
+	 			return_move4=nil
+
 
 				hour_t.clear
 				hour_time.clear
@@ -488,12 +502,13 @@ class Backtest_Run_V_17
 				time_difference = hour_1h_n[-1][@timestamp_t]-all_values[update_final_ii][3]
 				if  time_difference > timestamp_diff_epoch_held
 					timehere = hour_1h_n[-1][@timestamp_t]/1000.to_i
-					until (update_final_ii==all_values.count-1) || 
-						(((Time.at(timehere).wday==1 && Time.at(timehere).hour>12) || Time.at(timehere).wday!=1) && (hour_1h_n[-1][@timestamp_t]-all_values[update_final_ii][3])<timestamp_diff_epoch_held) ||
-						((Time.at(timehere).wday==1) && (Time.at(timehere).hour<12) && (time_difference< timestamp_diff_epoch_held+864000000)) 
+					current_day = Time.at(timehere).wday
+					current_hour = Time.at(timehere).hour
+					until (update_final_ii==all_values.count-1) || (((current_day==1 && current_hour>hours_held) || current_day!=1) && (hour_1h_n[-1][@timestamp_t]-all_values[update_final_ii][3])<timestamp_diff_epoch_held) ||
+						((current_day==1) && (current_hour<hours_held) && (time_difference< timestamp_diff_epoch_held+864000000)) 
 							
 							all_values[update_final_ii][1]=hour_1h_n[-1][@close_b]
-							all_values[update_final_ii][0]=(hour_1h_n[-1][@close_b]-hour_1h_n[-1][@close_ask])*@@pip
+							all_values[update_final_ii][0]=(hour_1h_n[-1][@close_b]-all_values[update_final_ii][2])*@@pip
 
 							update_final_ii+=1	
 					end
@@ -827,7 +842,7 @@ class Backtest_Run_V_17
 		end
 	end
 
-	def moving_averages(dataset,average_movement=240) #average movement is the in hours, so 10 day = 24 hours *10=240. # we use mid values here
+	def moving_average(dataset,average_movement=240) #average movement is the in hours, so 10 day = 24 hours *10=240. # we use mid values here
 		total_columns = 16 #the total number of columns noted here
 		#@m_expected_v,@m_ob_ex_diff, @m_ob_ex_avg, @m_ob_ex_max, @m_sum_pos, @m_sum_neg, @m_std_dev = 0,1,2,3,4,5,6
 		#@m_diff_more_stddev_two_times, @m_diff_more_stddev_one_times, @m_diff_more_stddev_half_times, @m_diff_less_stddev_tenth =7,8,9,10
@@ -909,81 +924,63 @@ class Backtest_Run_V_17
 		recent_24_hours, recent_12_hours = 24.0, 12.0
 		dd1=(ma_set.count-1) # we only need the final value for backtest. For compile_analytics, use -->	# dd1=average_movement-1
 		temp_ma_set=ma_set.transpose
+
+
+		last_peak = time_since_peak[-1][peak_valley_index]
+		last_valley = time_since_valley[-1][peak_valley_index]
+
+
 		while dd1<ma_set_count	
+
 			dd_start = dd1-average_movement+1
 			ma_avg = temp_ma_set[@m_ob_ex_diff][dd_start..dd1].avg #ArrayMath.new.sum(temp_ma_set[@m_ob_ex_diff][dd_start..dd1])/average_movement.to_f   #ma_set[dd_start..dd1].inject(0.0) { |sum, el| sum + el[@m_ob_ex_diff] } / average_movement  #calculates average difference between observed and expected
 			ma_max_val = temp_ma_set[@m_expected_v][dd_start..dd1].max
 			ma_min_val = temp_ma_set[@m_expected_v][dd_start..dd1].min
 			ma_max_index = dd_start + temp_ma_set[@m_expected_v][dd_start..dd1].rindex(ma_max_val)
 			ma_min_index = dd_start + temp_ma_set[@m_expected_v][dd_start..dd1].rindex(ma_min_val)
+
 			ma_max = ma_max_val-temp_ma_set[@m_expected_v][dd1] #calculates maximum difference between observed and expected
 			ma_min = ma_min_val-temp_ma_set[@m_expected_v][dd1] ## NEED TO ADD THIS IN
-			
-			#since_max_val = dd1-ma_max_index
-			#since_min_val = dd1-ma_min_index
-			
-			#ma_sum_pos = ma_avg >= 0 ? 1 : 0 #sum pos and sum neg no longer necessary, just use ma_avg
-			#ma_sum_neg = ma_avg < 0 ? 1 : 0  #sum pos and sum neg no longer necessary, just use ma_avg
 			
 			ma_variance = ma_set[dd_start..dd1].inject(0.0) {|accum, i| accum +(i[@m_ob_ex_diff]-ma_avg)**2 }
 			ma_variance/= average_movement
 			ma_std_dev = Math.sqrt(ma_variance)
 			proportion_ex_diff_to_std_dev = ((ma_set[dd1][@m_ob_ex_diff]-ma_std_dev)/ma_std_dev).round(8) #use the proportion instead of the plain std value
 			
-			since_span_peak_p = span_peak>0 ? ((dd1-time_since_peak[-1][peak_valley_index]).to_f/span_peak).round(4) : 0
-			since_span_valley_p = span_valley>0 ? ((dd1-time_since_valley[-1][peak_valley_index]).to_f/span_valley).round(4) : 0
-			since_span_crossed_p = span_cross>0 ? ((dd1-time_since_last_crossed[-1][cross_index]).to_f/span_cross).round(4) : 0
+			since_span_peak_p = (((dd1-last_peak).to_f)/span_peak).round(4)
+			since_span_valley_p = (((dd1-last_valley).to_f)/span_valley).round(4)
+
+
+			#since_span_peak_p = span_peak>0 ? ((time_since_peak[-1][peak_valley_index]).to_f/span_peak).round(4) : 0
+			#since_span_valley_p = span_valley>0 ? ((time_since_valley[-1][peak_valley_index]).to_f/span_valley).round(4) : 0
+			since_span_crossed_p = span_cross>0 ? ((time_since_last_crossed[-1][cross_index]).to_f/span_cross).round(4) : 0
+		
 			
-			#ma_diff_more_stddev_two_times = (ma_set[dd1][@m_ob_ex_diff].abs) >=(ma_std_dev*2) ? 1 : 0  #to be removed, just use m_ob_ex_diff
-			#ma_diff_more_stddev_one_times = ((ma_set[dd1][@m_ob_ex_diff].abs) >=(ma_std_dev*1) && (ma_set[dd1][@m_ob_ex_diff].abs) <(ma_std_dev*2)) ? 1 : 0 #to be removed, just use m_ob_ex_diff
-			#ma_diff_more_stddev_half_times = ((ma_set[dd1][@m_ob_ex_diff].abs)>=(ma_std_dev*0.5) && (ma_set[dd1][@m_ob_ex_diff].abs) <(ma_std_dev*1)) ? 1 : 0 #to be removed, just use m_ob_ex_diff
-			#ma_diff_less_stddev_tenth = (ma_set[dd1][@m_ob_ex_diff].abs) < (ma_std_dev*0.1) ? 1 : 0 #to be removed, just use m_ob_ex_diff
-			
-			#ma_current_pos = ma_set[dd1][@m_ob_ex_diff] >= 0 ? 1 : 0	# I want to remove this to include time
-			#ma_current_neg = ma_set[dd1][@m_ob_ex_diff] < 0 ? 1 : 0		# I want to remove this to include time
-			
-			#time since last crossed
-			
-			ma_sum_recent_max = temp_ma_set[@m_ob_ex_diff][ma_max_index..dd1].sum #ArrayMath.new.sum(temp_ma_set[@m_ob_ex_diff][ma_max_index..dd1])
-			ma_sum_recent_min = temp_ma_set[@m_ob_ex_diff][ma_min_index..dd1].sum #ArrayMath.new.sum(temp_ma_set[@m_ob_ex_diff][ma_min_index..dd1])
+			ma_sum_recent_max = temp_ma_set[@m_ob_ex_diff][ma_max_index..dd1].sum 
+			ma_sum_recent_min = temp_ma_set[@m_ob_ex_diff][ma_min_index..dd1].sum 
 				
 			dd_recent_24_hours, dd_recent_12_hours = (dd1-recent_24_hours+1), (dd1-recent_12_hours+1)
-			#ma_avg_recent_24_hours = ma_set[dd_recent_24_hours..dd1].inject(0.0) { |sum, el| sum + el[@m_ob_ex_diff] } / recent_24_hours
-			#ma_avg_recent_12_hours = ma_set[dd_recent_12_hours..dd1].inject(0.0) { |sum, el| sum + el[@m_ob_ex_diff] } / recent_12_hours
-			ma_avg_recent_24_hours = temp_ma_set[@m_ob_ex_diff][dd_recent_24_hours..dd1].avg #ArrayMath.new.sum(temp_ma_set[@m_ob_ex_diff][dd_recent_24_hours..dd1]) / recent_24_hours.to_f
-			ma_avg_recent_12_hours = temp_ma_set[@m_ob_ex_diff][dd_recent_12_hours..dd1].avg #ArrayMath.new.sum(temp_ma_set[@m_ob_ex_diff][dd_recent_12_hours..dd1]) / recent_12_hours.to_f
+
+			ma_avg_recent_24_hours = temp_ma_set[@m_ob_ex_diff][dd_recent_24_hours..dd1].avg 
+			ma_avg_recent_12_hours = temp_ma_set[@m_ob_ex_diff][dd_recent_12_hours..dd1].avg 
 			
 			index_recent_cross = time_since_last_crossed[-1][cross_index]
 			index_2nd_recent_cross = time_since_last_crossed.count>1 ? time_since_last_crossed[-2][cross_index] : index_recent_cross
 			
-			#ma_sum_recent_cross = temp_ma_set[@m_ob_ex_diff][index_recent_cross..dd1].inject(:+)
-			#ma_sum_2nd_recent_cross = temp_ma_set[@m_ob_ex_diff][index_2nd_recent_cross..dd1].inject(:+)
-	
-			#ma_recent_24_hours_pos_neg = ma_avg_recent_24_hours > 0 ? 1 : -1 #to be removed just use original values
-			#ma_recent_12_hours_pos_neg = ma_avg_recent_12_hours > 0 ? 1 : -1 #to be removed just use original values
-			
-			#ma_diff_avg_pos_only = temp_ma_set[@m_ob_ex_diff][dd_start..dd1].select {|c| c > 0 }.inject(0.0,&:+)/(temp_ma_set[@m_ob_ex_diff][dd_start..dd1].count{|x| x> 0})
-			#ma_diff_avg_neg_only = (temp_ma_set[@m_ob_ex_diff][dd_start..dd1].select {|c| c < 0 }.inject(0.0,&:+)).abs/(temp_ma_set[@m_ob_ex_diff][dd_start..dd1].count{|x| x< 0})
-		
-			#	ma_curr_less_avg = temp_ma_set[@m_ob_ex_diff][dd1] < ma_diff_avg_pos_only ? 1 : 0 if temp_ma_set[@m_ob_ex_diff][dd1] >= 0 #if the current difference is less than the average of its category, that means it is susceptible to changes
-			#	ma_curr_less_avg = temp_ma_set[@m_ob_ex_diff][dd1] < ma_diff_avg_neg_only ? 1 : 0 if temp_ma_set[@m_ob_ex_diff][dd1] < 0
-			
 			ma_set[dd1][@m_ob_ex_avg],ma_set[dd1][@m_ob_ex_max] =  ma_avg.round(8), ma_max.round(8)
+
+			
+			# (temp_ma_set[@m_expected_v][dd1]-self.time_since_peak[-1][peak_valley_value]) difference between current/final expected V and last peak value
+			# (temp_ma_set[@m_expected_v][dd1]-self.time_since_peak[-1][peak_valley_value]) difference between current/final expected V and second last peak value
+
 			ma_set[dd1][@m_sum_pos], ma_set[dd1][@m_sum_neg], ma_set[dd1][@m_std_dev] = (temp_ma_set[@m_expected_v][dd1]-time_since_peak[-1][peak_valley_value]), (temp_ma_set[@m_expected_v][dd1]-time_since_peak[-2][peak_valley_value]), proportion_ex_diff_to_std_dev
 			ma_set[dd1][@m_diff_more_stddev_two_times], ma_set[dd1][@m_diff_more_stddev_one_times] =temp_ma_set[@m_expected_v][dd1]-time_since_valley[-1][peak_valley_value],temp_ma_set[@m_expected_v][dd1]-time_since_valley[-2][peak_valley_value]
 			ma_set[dd1][@m_diff_more_stddev_half_times], ma_set[dd1][@m_diff_less_stddev_tenth] = since_span_peak_p, since_span_valley_p
 			
-			#ma_set[dd1][@m_sum_pos], ma_set[dd1][@m_sum_neg], ma_set[dd1][@m_std_dev] = ma_sum_pos, ma_sum_neg, ma_std_dev.round(8)
-			#ma_set[dd1][@m_diff_more_stddev_two_times], ma_set[dd1][@m_diff_more_stddev_one_times]  = ma_diff_more_stddev_two_times, ma_diff_more_stddev_one_times
-			#ma_set[dd1][@m_diff_more_stddev_half_times], ma_set[dd1][@m_diff_less_stddev_tenth] = ma_diff_more_stddev_half_times, ma_diff_less_stddev_tenth
-			#ma_set[dd1][@m_current_pos], ma_set[dd1][@m_current_neg] = ma_current_pos, ma_current_neg
-			#ma_set[dd1][@m_recent_24_hours_pos_neg], ma_set[dd1][@m_recent_12_hours_pos_neg] = ma_recent_24_hours_pos_neg, ma_recent_12_hours_pos_neg
-			#ma_set[dd1][@m_curr_less_avg] = ma_curr_less_avg
-			
 			ma_set[dd1][@m_current_pos], ma_set[dd1][@m_current_neg] = ma_sum_recent_max, ma_sum_recent_min
-			ma_set[dd1][@m_recent_24_hours_pos_neg], ma_set[dd1][@m_recent_12_hours_pos_neg] = ma_avg_recent_24_hours,ma_avg_recent_12_hours #ma_sum_recent_cross, ma_sum_2nd_recent_cross
+			ma_set[dd1][@m_recent_24_hours_pos_neg], ma_set[dd1][@m_recent_12_hours_pos_neg] = ma_avg_recent_24_hours,ma_avg_recent_12_hours 
 			ma_set[dd1][@m_curr_less_avg] = since_span_crossed_p
-			
+
 			dd1+=1
 		end
 
@@ -993,8 +990,152 @@ class Backtest_Run_V_17
 
 	end
 
-	def moving_average_diff(val1, val2)
-		return 0
+	def moving_averages_2(dataset_time,dataset_val, average_movement=240)
+		total_columns = 17 #the total number of columns noted here
+		cross_up_down, cross_index = 0,1  
+		up_cross, down_cross = "up_cross", "down_cross"
+		peak_valley_index, peak_valley_value = 0,1
+		dataset_count = dataset_time.count
+### get most recent time, then obtain @@ma_set_n
+		
+		dd=average_movement-1
+		@@ma_set_n =Array.new(average_movement-1){Array.new(3,0)}  #new column, timestamp
+		@@ma_set_n = count_ma_set2(dataset_time, dataset_val, @@ma_set_n, average_movement, dd)
+
+### obtain peak base values
+ 
+		ma_set_tr = (@@ma_set_n.transpose)#.deep_dup
+		ma_time = ma_set_tr[@m_timestamp]#.deep_dup
+		ma_val = ma_set_tr[@m_expected_v]#.deep_dup
+		ma_set_count = @@ma_set_n.count
+		peak_finding_interval = 8 #16 hours in between, so set at 8
+		peak_avg_interval =3
+
+
+		time_since_peak = []#  self.time_since_peak.deep_dup
+		time_since_valley = []#  self.time_since_valley.deep_dup
+		time_since_peak_t = []#  self.time_since_peak_t.deep_dup
+		time_since_valley_t = []#  self.time_since_valley_t.deep_dup
+		prev_peak_ind_diff = []#  self.prev_peak_ind_diff.deep_dup  #the most recent/last value would be the distance from peak to current, it needs to be removed
+		prev_base_ind_diff = []#  self.prev_base_ind_diff.deep_dup
+		recent_time=0
+
+
+		current_time = recent_time
+
+		ma_peak_class1 = Peak.new()
+		result_peak = ma_peak_class1.find_peak_c(ma_time, ma_val, time_since_peak_t, time_since_peak, time_since_valley_t, time_since_valley, prev_peak_ind_diff, prev_base_ind_diff, current_time, peak_finding_interval, peak_avg_interval)
+=begin
+	:return[0]= peak arrays
+	return[0][0] = peak_array_timestamp
+	return[0][1] = peak_array_values
+	:return[1] = base arrays
+	return[1][0] = base_arrays_timestamp
+	return[1][1] = base_arrays_values
+	return [2] = recent time
+	:return[3] = distance between peaks
+	return[3][0] = distance between peaks and previous peak
+	return[3][1] = diatance between peak and previous base
+	: return[4] = distance between bases
+	return[4][0] = distance between base and previous base
+	return[4][1] = distance between base and previous peak
+
+=end
+
+		time_since_peak_t = result_peak[0][0].compact#.deep_dup
+		time_since_peak = result_peak[0][1].compact#.deep_dup
+		time_since_valley_t = result_peak[1][0].compact#.deep_dup
+		time_since_valley = result_peak[1][1].compact#.deep_dup
+		prev_peak_ind_diff = result_peak[3].compact#.deep_dup
+		prev_base_ind_diff = result_peak[4].compact#.deep_dup
+		
+		recent_time = result_peak[2]#.deep_dup
+	
+
+###end peak base find
+### find crossing value
+		ma_tt_start =average_movement+peak_finding_interval	
+		first_crossed_list = @@ma_set_n[(average_movement+2)][@m_ob_ex_diff]>=0 ? [up_cross,ma_tt_start] : [down_cross,ma_tt_start] 				#average_movement+2 to avoid the zeroes at the front
+		time_since_last_crossed =Array.new(1){Array.new(first_crossed_list)}	#we can check up to 2 previous histories of crossing the positive negative boundary. 
+		#Will only include 1 previous histories for now because we're only processing a limited number of days #once we increase the number of days processed, we can increase the array beyond 2 recent history numbers
+		
+		
+		temp_ma_set_0 = ma_set_tr[@m_expected_v]
+		#the peak finding is performed by checking if the center value is lower/higher between the start point and end point. Then we search for a min or max value
+		(ma_tt_start..ma_set_count-peak_finding_interval-1).step(peak_finding_interval) do |ma_tt|	
+			#to find crossover
+			if @@ma_set_n[ma_tt][@m_ob_ex_diff]>0 && time_since_last_crossed[-1][cross_up_down]==down_cross
+				time_since_last_crossed.push([up_cross,ma_tt]) 
+			elsif @@ma_set_n[ma_tt][@m_ob_ex_diff]<0 && time_since_last_crossed[-1][cross_up_down]==up_cross
+				time_since_last_crossed.push([down_cross,ma_tt])
+			end
+		end			# end for loopwhenver @@ma_set_n switches from positive to negative, and find peaks. 
+
+		last_peak = (prev_peak_ind_diff.pop)[peak_valley_index]  #will not include final peak distance into overall average #not including final peak because it could include the most recent value and hence inaccurate
+		last_valley = (prev_base_ind_diff.pop)[peak_valley_index] #same goes for base. The last value is inaccurate ^^^
+
+		time_since_last_crossed.slice!(0) if time_since_last_crossed.count>=3
+		peak_count, valley_count, cross_count = prev_peak_ind_diff.count, prev_base_ind_diff.count, time_since_last_crossed.count
+		span_peak, span_valley, span_cross = 0.0, 0.0, 0.0
+		prev_peak_ind_diff.each{|x| span_peak+=x[peak_valley_index]}
+		prev_base_ind_diff.each{|x| span_valley+=x[peak_valley_index]}
+		(0..cross_count-2).each{|x| span_cross+=(time_since_last_crossed[x][cross_index]-time_since_last_crossed[x+1][cross_index]).abs}
+		span_peak/=(peak_count-1) if peak_count!=1
+		span_valley/=(valley_count-1) if valley_count!=1
+		span_cross/=(cross_count-1) if cross_count!=1
+
+		span_cross=ma_set_count if time_since_last_crossed.count==1
+		peak_count, valley_count, cross_count, max_p, ind_p,min_v,ind_v,temp_ma_set_0 = nil,nil,nil,nil,nil,nil,nil,nil
+
+		@@ma_set_n.each {|x|(total_columns-2).times{x.push(0)}} #it's important to include the columns before transposing because the first (average_movement)total columns are 0. total_columns-2 is because the first two are already included, eg m_expected_v,@m_ob_ex_diff
+		recent_24_hours, recent_12_hours = 24.0, 12.0
+		dd1=(@@ma_set_n.count-1) # we only need the final value for backtest. For compile_analytics, use -->	# dd1=average_movement-1
+		temp_ma_set=@@ma_set_n.transpose
+		while dd1<ma_set_count	
+			dd_start = dd1-average_movement+1
+			ma_avg = temp_ma_set[@m_ob_ex_diff][dd_start..dd1].avg #ArrayMath.new.sum(temp_ma_set[@m_ob_ex_diff][dd_start..dd1])/average_movement.to_f   #@@ma_set_n[dd_start..dd1].inject(0.0) { |sum, el| sum + el[@m_ob_ex_diff] } / average_movement  #calculates average difference between observed and expected
+			ma_max_val = temp_ma_set[@m_expected_v][dd_start..dd1].max
+			ma_min_val = temp_ma_set[@m_expected_v][dd_start..dd1].min
+			ma_max_index = dd_start + temp_ma_set[@m_expected_v][dd_start..dd1].rindex(ma_max_val)
+			ma_min_index = dd_start + temp_ma_set[@m_expected_v][dd_start..dd1].rindex(ma_min_val)
+
+			ma_max = ma_max_val-temp_ma_set[@m_expected_v][dd1] #calculates maximum difference between observed and expected
+			ma_min = ma_min_val-temp_ma_set[@m_expected_v][dd1] ## NEED TO ADD THIS IN
+			
+			ma_variance = @@ma_set_n[dd_start..dd1].inject(0.0) {|accum, i| accum +(i[@m_ob_ex_diff]-ma_avg)**2 }
+			ma_variance/= average_movement
+			ma_std_dev = Math.sqrt(ma_variance)
+			proportion_ex_diff_to_std_dev = ((@@ma_set_n[dd1][@m_ob_ex_diff]-ma_std_dev)/ma_std_dev).round(8) #use the proportion instead of the plain std value
+			
+			since_span_peak_p = (((dd1-last_peak).to_f)/span_peak).round(4)
+			since_span_valley_p = (((dd1-last_valley).to_f)/span_valley).round(4)
+			since_span_crossed_p = span_cross>0 ? ((time_since_last_crossed[-1][cross_index]).to_f/span_cross).round(4) : 0
+		
+			ma_sum_recent_max = temp_ma_set[@m_ob_ex_diff][ma_max_index..dd1].sum 
+			ma_sum_recent_min = temp_ma_set[@m_ob_ex_diff][ma_min_index..dd1].sum 
+				
+			dd_recent_24_hours, dd_recent_12_hours = (dd1-recent_24_hours+1), (dd1-recent_12_hours+1)
+
+			ma_avg_recent_24_hours = temp_ma_set[@m_ob_ex_diff][dd_recent_24_hours..dd1].avg 
+			ma_avg_recent_12_hours = temp_ma_set[@m_ob_ex_diff][dd_recent_12_hours..dd1].avg 
+			
+			index_recent_cross = time_since_last_crossed[-1][cross_index]
+			index_2nd_recent_cross = time_since_last_crossed.count>1 ? time_since_last_crossed[-2][cross_index] : index_recent_cross
+			
+			@@ma_set_n[dd1][@m_ob_ex_avg],@@ma_set_n[dd1][@m_ob_ex_max] =  ma_avg.round(8), ma_max.round(8)
+
+			@@ma_set_n[dd1][@m_sum_pos], @@ma_set_n[dd1][@m_sum_neg], @@ma_set_n[dd1][@m_std_dev] = (temp_ma_set[@m_expected_v][dd1]-time_since_peak[-1]), (temp_ma_set[@m_expected_v][dd1]-time_since_peak[-2]), proportion_ex_diff_to_std_dev
+			@@ma_set_n[dd1][@m_diff_more_stddev_two_times], @@ma_set_n[dd1][@m_diff_more_stddev_one_times] =temp_ma_set[@m_expected_v][dd1]-time_since_valley[-1],temp_ma_set[@m_expected_v][dd1]-time_since_valley[-2]
+			@@ma_set_n[dd1][@m_diff_more_stddev_half_times], @@ma_set_n[dd1][@m_diff_less_stddev_tenth] = since_span_peak_p, since_span_valley_p
+			
+			@@ma_set_n[dd1][@m_current_pos], @@ma_set_n[dd1][@m_current_neg] = ma_sum_recent_max, ma_sum_recent_min
+			@@ma_set_n[dd1][@m_recent_24_hours_pos_neg], @@ma_set_n[dd1][@m_recent_12_hours_pos_neg] = ma_avg_recent_24_hours,ma_avg_recent_12_hours 
+			@@ma_set_n[dd1][@m_curr_less_avg] = since_span_crossed_p
+			
+			dd1+=1
+		end
+
+		return  @@ma_set_n[-1]
 	end
 	
 	
@@ -1312,6 +1453,45 @@ class Backtest_Run_V_17
   		return intercept, slope, cov00, cov01, cov11, chisq
 	end
 
+	     inline :C do |builder|
+        builder.c "
+        
+           VALUE count_ma_set2(VALUE timestamp_d, VALUE value_d, VALUE prev_ma, VALUE intvl, VALUE start_point){
+			/* timestamp_d is data timestamp, value_d is for data value */
+				int interval = NUM2INT(intvl);
+				int ii = NUM2INT(start_point);
+				/*double cur_time = NUM2DBL(cur_t);*/
+                int size = RARRAY_LEN(timestamp_d);
+				int last_val = size-1;
+				int max_size = size-interval;
+                VALUE *c_time_d = RARRAY_PTR(timestamp_d);
+				VALUE *c_val_d= RARRAY_PTR(value_d);
+				int i ;
+				double count, sum_avg_val, ma_obs_diff;
+				long ma_size;
+				do {
+					int ii_start = (ii-interval+1);
+					count=0.0;
+					sum_avg_val=0.0;
+					/*check if count =0 or count=1 is correct */
+					for (i=ii_start; i<=ii; i++) {	
+						sum_avg_val += NUM2DBL(c_val_d[i]); 
+						count++;
+					}
+					sum_avg_val/=count;
+					ma_obs_diff = NUM2DBL(c_val_d[ii])-sum_avg_val;
+					ma_size = RARRAY_LEN(prev_ma);
+					rb_ary_store(prev_ma, ma_size, rb_ary_new3(3,c_time_d[ii], DBL2NUM(sum_avg_val), DBL2NUM(ma_obs_diff)));
+					ii++;
+				}while (ii <size );
+				
+			return prev_ma;
+				
+			}"
+	end	
+
+
+
 end #class Backtest_Run_V_15
 
 
@@ -1354,6 +1534,7 @@ def check_folder_exists(path)
 end
 
 if __FILE__ == $0
+
 
 	#pie = 1421916139000
 	#pie2 = (Time.at(((pie/1000).to_i)).utc).strftime("%U")
