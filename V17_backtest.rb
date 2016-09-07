@@ -218,41 +218,42 @@ class Backtest_Run_V_17
 
 
 			p current_ii
-			if (week_check(current_interval_1h) && all_values.count>=10000)#@average_analytics_count) #|| half_week_check(current_interval_1h))
+			if (week_check(current_interval_1h) && all_values.count>=21000)#@average_analytics_count) #|| half_week_check(current_interval_1h))
 			#count_compiled = all_values.any? ? all_values.count : 0
 				if true #count_compiled>=@average_analytics_count
 #					write_analytics_live(currency, prev_analytics.dup)
 #					prev_analytics.clear
+					p "end here with #{all_values.count}"
 
 					variable_names=['profit_buy','profit_24_buy', 'profit_48_buy', 'profit_72_buy',
-					'hour_1h_n[-1][@open_b]','hour_1h_n[-1][@high_b]','hour_1h_n[-1][@low_b]','hour_1h_n[-1][@close_b]','hour_1h_n[-1][@close_ask]','hour_1h_n[-1][@candle_location]','[]',
+					'hour_1h_n_open_b','hour_1h_n_high_b','hour_1h_n_low_b','hour_1h_n_close_b','hour_1h_nclose_ask','hour_1h_n_candle_location','blank',
 						'buy_1h', 'buy_3h', 'buy_6h', 'buy_12h', 'buy_24h',
-					'regression_slope','errors','intercept_diff','est_diff_bid_slope','est_diff_ask_slope','regression_slope2','chisq_2','regression_slope2/cov00_2',
-					'regression_slope_TWO','errors_TWO','intercept_diff_TWO','est_diff_bid_slope_TWO','est_diff_ask_slope_TWO','regression_slope2_TWO','chisq_2_TWO','regression_slope2/cov00_2_TWO',
-					'regression_slope_THREE','errors_THREE','intercept_diff_THREE','est_diff_bid_slope_THREE','est_diff_ask_slope_THREE','regression_slope2_THREE','chisq_2_THREE','regression_slope2/cov00_2_THREE',
-					'regression_slope_FOUR','errors_FOUR','intercept_diff_FOUR','est_diff_bid_slope_FOUR','est_diff_ask_slope_FOUR','regression_slope2_FOUR','chisq_2_FOUR','regression_slope2/cov00_2_FOUR',
-					'regression_slope_FIVE','errors_FIVE','intercept_diff_FIVE','est_diff_bid_slope_FIVE','est_diff_ask_slope_FIVE','regression_slope2_FIVE','chisq_2_FIVE','regression_slope2/cov00_2_FIVE',
-					'pp1_1_regression_slope','pp1_1_errors','pp1_1_intercept_diff','pp1_1_est_diff_bid_slope','pp1_1_est_diff_ask_slope','pp1_1_regression_slope2','pp1_1_chisq_2','pp1_1_regression_slope2/cov00_2','pp1_1_lag_v' , 
-					'pp2_1_regression_slope','pp2_1_errors','pp2_1_intercept_diff','pp2_1_est_diff_bid_slope','pp2_1_est_diff_ask_slope','pp2_1_regression_slope2','pp2_1_chisq_2','pp2_1_regression_slope2/cov00_2','pp2_1_lag_v' ,
-					'bb1_1_regression_slope','bb1_1_errors','bb1_1_intercept_diff','bb1_1_est_diff_bid_slope','bb1_1_est_diff_ask_slope','bb1_1_regression_slope2','bb1_1_chisq_2','bb1_1_regression_slope2/cov00_2','bb1_1_lag_v' , 
-					'bb2_1_regression_slope','bb2_1_errors','bb2_1_intercept_diff','bb2_1_est_diff_bid_slope','bb2_1_est_diff_ask_slope','bb2_1_regression_slope2','bb2_1_chisq_2','bb2_1_regression_slope2/cov00_2','bb2_1_lag_v' ,
-					'pp1_2_regression_slope','pp1_2_errors','pp1_2_intercept_diff','pp1_2_est_diff_bid_slope','pp1_2_est_diff_ask_slope','pp1_2_regression_slope2','pp1_2_chisq_2','pp1_2_regression_slope2/cov00_2','pp1_2_lag_v' , 
-					'pp2_2_regression_slope','pp2_2_errors','pp2_2_intercept_diff','pp2_2_est_diff_bid_slope','pp2_2_est_diff_ask_slope','pp2_2_regression_slope2','pp2_2_chisq_2','pp2_2_regression_slope2/cov00_2','pp2_2_lag_v' ,
-					'bb1_2_regression_slope','bb1_2_errors','bb1_2_intercept_diff','bb1_2_est_diff_bid_slope','bb1_2_est_diff_ask_slope','bb1_2_regression_slope2','bb1_2_chisq_2','bb1_2_regression_slope2/cov00_2','bb1_2_lag_v' , 
-					'bb2_2_regression_slope','bb2_2_errors','bb2_2_intercept_diff','bb2_2_est_diff_bid_slope','bb2_2_est_diff_ask_slope','bb2_2_regression_slope2','bb2_2_chisq_2','bb2_2_regression_slope2/cov00_2','bb2_2_lag_v' ,
-					'm_1_expected_v','m_1_ob_ex_diff', 'm_1_ob_ex_avg', 'm_1_ob_ex_max', 'm_1_sum_pos', 'm_1_sum_neg', 'm_1_std_dev',
+					'regression_slope','errors','intercept_diff','est_diff_bid_slope','est_diff_ask_slope','regression_slope2','chisq_2','regression_slope2_cov00_2',
+					'regression_slope_TWO','errors_TWO','intercept_diff_TWO','est_diff_bid_slope_TWO','est_diff_ask_slope_TWO','regression_slope2_TWO','chisq_2_TWO','regression_slope2_cov00_2_TWO',
+					'regression_slope_THREE','errors_THREE','intercept_diff_THREE','est_diff_bid_slope_THREE','est_diff_ask_slope_THREE','regression_slope2_THREE','chisq_2_THREE','regression_slope2_cov00_2_THREE',
+					'regression_slope_FOUR','errors_FOUR','intercept_diff_FOUR','est_diff_bid_slope_FOUR','est_diff_ask_slope_FOUR','regression_slope2_FOUR','chisq_2_FOUR','regression_slope2_cov00_2_FOUR',
+					'regression_slope_FIVE','errors_FIVE','intercept_diff_FIVE','est_diff_bid_slope_FIVE','est_diff_ask_slope_FIVE','regression_slope2_FIVE','chisq_2_FIVE','regression_slope2_cov00_2_FIVE',
+					'pp1_1_regression_slope','pp1_1_errors','pp1_1_intercept_diff','pp1_1_est_diff_bid_slope','pp1_1_est_diff_ask_slope','pp1_1_regression_slope2','pp1_1_chisq_2','pp1_1_regression_slope2_cov00_2','pp1_1_lag_v' , 
+					'pp2_1_regression_slope','pp2_1_errors','pp2_1_intercept_diff','pp2_1_est_diff_bid_slope','pp2_1_est_diff_ask_slope','pp2_1_regression_slope2','pp2_1_chisq_2','pp2_1_regression_slope2_cov00_2','pp2_1_lag_v' ,
+					'bb1_1_regression_slope','bb1_1_errors','bb1_1_intercept_diff','bb1_1_est_diff_bid_slope','bb1_1_est_diff_ask_slope','bb1_1_regression_slope2','bb1_1_chisq_2','bb1_1_regression_slope2_cov00_2','bb1_1_lag_v' , 
+					'bb2_1_regression_slope','bb2_1_errors','bb2_1_intercept_diff','bb2_1_est_diff_bid_slope','bb2_1_est_diff_ask_slope','bb2_1_regression_slope2','bb2_1_chisq_2','bb2_1_regression_slope2_cov00_2','bb2_1_lag_v' ,
+					'pp1_2_regression_slope','pp1_2_errors','pp1_2_intercept_diff','pp1_2_est_diff_bid_slope','pp1_2_est_diff_ask_slope','pp1_2_regression_slope2','pp1_2_chisq_2','pp1_2_regression_slope2_cov00_2','pp1_2_lag_v' , 
+					'pp2_2_regression_slope','pp2_2_errors','pp2_2_intercept_diff','pp2_2_est_diff_bid_slope','pp2_2_est_diff_ask_slope','pp2_2_regression_slope2','pp2_2_chisq_2','pp2_2_regression_slope2_cov00_2','pp2_2_lag_v' ,
+					'bb1_2_regression_slope','bb1_2_errors','bb1_2_intercept_diff','bb1_2_est_diff_bid_slope','bb1_2_est_diff_ask_slope','bb1_2_regression_slope2','bb1_2_chisq_2','bb1_2_regression_slope2_cov00_2','bb1_2_lag_v' , 
+					'bb2_2_regression_slope','bb2_2_errors','bb2_2_intercept_diff','bb2_2_est_diff_bid_slope','bb2_2_est_diff_ask_slope','bb2_2_regression_slope2','bb2_2_chisq_2','bb2_2_regression_slope2_cov00_2','bb2_2_lag_v' ,
+					'm_1_ob_ex_diff', 'm_1_ob_ex_avg', 'm_1_ob_ex_max', 'm_1_sum_pos', 'm_1_sum_neg', 'm_1_std_dev',
 					'm_1_diff_more_stddev_two_times', 'm_1_diff_more_stddev_one_times', 'm_1_diff_more_stddev_half_times', 'm_1_diff_less_stddev_tenth',
 					'm_1_current_pos','m_1_current_neg',
 					'm_1_recent_24_hours_pos_neg', 'm_1_recent_12_hours_pos_neg', 'm_1_curr_less_avg',
-					'm_2_expected_v','m_2_ob_ex_diff', 'm_2_ob_ex_avg', 'm_2_ob_ex_max', 'm_2_sum_pos', 'm_2_sum_neg', 'm_2_std_dev',
+					'm_2_ob_ex_diff', 'm_2_ob_ex_avg', 'm_2_ob_ex_max', 'm_2_sum_pos', 'm_2_sum_neg', 'm_2_std_dev',
 					'm_2_diff_more_stddev_two_times', 'm_2_diff_more_stddev_one_times', 'm_2_diff_more_stddev_half_times', 'm_2_diff_less_stddev_tenth',
 					'm_2_current_pos','m_2_current_neg',
 					'm_2_recent_24_hours_pos_neg', 'm_2_recent_12_hours_pos_neg', 'm_2_curr_less_avg',
-					'm_3_expected_v','m_3_ob_ex_diff', 'm_3_ob_ex_avg', 'm_3_ob_ex_max', 'm_3_sum_pos', 'm_3_sum_neg', 'm_3_std_dev',
+					'm_3_ob_ex_diff', 'm_3_ob_ex_avg', 'm_3_ob_ex_max', 'm_3_sum_pos', 'm_3_sum_neg', 'm_3_std_dev',
 					'm_3_diff_more_stddev_two_times', 'm_3_diff_more_stddev_one_times', 'm_3_diff_more_stddev_half_times', 'm_3_diff_less_stddev_tenth',
 					'm_3_current_pos','m_3_current_neg',
 					'm_3_recent_24_hours_pos_neg', 'm_3_recent_12_hours_pos_neg', 'm_3_curr_less_avg',
-					'm_4_expected_v','m_4_ob_ex_diff', 'm_4_ob_ex_avg', 'm_4_ob_ex_max', 'm_4_sum_pos', 'm_4_sum_neg', 'm_4_std_dev',
+					'm_4_ob_ex_diff', 'm_4_ob_ex_avg', 'm_4_ob_ex_max', 'm_4_sum_pos', 'm_4_sum_neg', 'm_4_std_dev',
 					'm_4_diff_more_stddev_two_times', 'm_4_diff_more_stddev_one_times', 'm_4_diff_more_stddev_half_times', 'm_4_diff_less_stddev_tenth',
 					'm_4_current_pos','m_4_current_neg',
 					'm_4_recent_24_hours_pos_neg', 'm_4_recent_12_hours_pos_neg', 'm_4_curr_less_avg',
@@ -285,7 +286,7 @@ class Backtest_Run_V_17
 
 					exit()
 				else
-					 
+=begin					 
 					all_values.insert(0,["Yes/No", "Profit_Buy","Profit_24_Buy","Profit_48_Buy","Profit_72_Buy",
 					"Candle_loc","Close Bid","Close Ask","Slope","Slope2","Error_slope","Intercept_slope","Estimated_difference_bid","Estimated_difference_ask",
 					"Buy_gain_1h_ago", "Buy_gain_3h_ago", "Buy_gain_6h_ago", "Buy_gain_12h_ago", "Buy_gain_24h_ago", 
@@ -315,7 +316,7 @@ class Backtest_Run_V_17
 						hour_loc_ahead=-1 if hour_loc_ahead >=total_hours	
 						x[@jprofit_buy_0]=((hour_1_ori[hour_loc_ahead][@close_b]-x[@jcloseask_6])*pip).round(1)
 					end
-					
+=end					
 				end
 				
 				@first_array = TRUE
@@ -469,10 +470,10 @@ class Backtest_Run_V_17
 				## not needed #total_ma.each {| key, value | returned_values.push(*(value.deep_dup))} same as above
 
 
-	 			return_move1 = move1.moving_averages(hour_time, hour_val)
-	 			return_move2 = move2.moving_averages(hour_time, hour_val)
-	 			return_move3 = move3.moving_averages(hour_time, hour_val)
-	 			return_move4 = move4.moving_averages(hour_time, hour_val)
+	 			return_move1 = move1.moving_averages(hour_time.dup, hour_val.dup)
+	 			return_move2 = move2.moving_averages(hour_time.dup, hour_val.dup)
+	 			return_move3 = move3.moving_averages(hour_time.dup, hour_val.dup)
+	 			return_move4 = move4.moving_averages(hour_time.dup, hour_val.dup)
 	 			returned_values.push(*(return_move1.deep_dup))
 	 			return_move1=nil
 	 			returned_values.push(*(return_move2.deep_dup))
